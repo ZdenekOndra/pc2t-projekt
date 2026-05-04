@@ -1,0 +1,2 @@
+Main-Class: employeedb.Main
+Class-Path: lib/sqlite-jdbc.jar
