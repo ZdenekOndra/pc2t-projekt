@@ -196,7 +196,7 @@ public class Main {
         System.out.println("Nazev souboru:");
         String filename = sc.nextLine().trim();
 
-         if (filename.isEmpty()) {
+        if (filename.isEmpty()) {
         System.out.println("Nazev souboru nesmi byt prazdny.");
         return;
         }
