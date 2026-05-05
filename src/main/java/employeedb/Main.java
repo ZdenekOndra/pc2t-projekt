@@ -54,7 +54,9 @@ public class Main {
                     System.out.println("Neplatna volba.");
                     break;
             }
-            System.out.println();
+            if (running) {
+                pauseForUser(sc);
+            }
         }
 
         db.saveToSQLite();
@@ -78,6 +80,13 @@ public class Main {
         System.out.println("Volba:");
     }
 
+    public static void pauseForUser(Scanner sc) {
+        System.out.println();
+        System.out.println("[Stiskni Enter pro pokracovani]");
+        sc.nextLine();
+        System.out.println();
+    }
+
     public static int readInt(Scanner sc) {
         try {
             return Integer.parseInt(sc.nextLine().trim());
@@ -91,16 +100,27 @@ public class Main {
         System.out.println("Skupina: D = datovy analytik, S = bezpecnostni specialista");
         System.out.println("Kod skupiny:");
         String input = sc.nextLine().trim().toUpperCase();
-        if (input.length() == 0) return;
+        if (input.isEmpty() || (input.charAt(0) != 'D' && input.charAt(0) != 'S')) {
+            System.out.println("Neznamy kod skupiny (povoleno D nebo S).");
+            return;
+        }
         char code = input.charAt(0);
 
         System.out.println("Jmeno:");
         String name = sc.nextLine().trim();
         System.out.println("Prijmeni:");
         String surname = sc.nextLine().trim();
+        if (name.isEmpty() || surname.isEmpty()) {
+            System.out.println("Jmeno a prijmeni nesmi byt prazdne.");
+            return;
+        }
+
         System.out.println("Rok narozeni:");
         int year = readInt(sc);
-        if (year < 0) return;
+        if (!EmployeeDatabase.isYearValid(year)) {
+            System.out.println("Neplatny rok narozeni.");
+            return;
+        }
 
         db.createEmployee(code, name, surname, year);
     }
@@ -165,6 +185,10 @@ public class Main {
         if (id < 0) return;
         System.out.println("Nazev souboru:");
         String filename = sc.nextLine().trim();
+        if (filename.isEmpty()) {
+            System.out.println("Nazev souboru nesmi byt prazdny.");
+            return;
+        }
         db.saveEmployeeToFile(id, filename);
     }
 

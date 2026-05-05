@@ -13,22 +13,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class EmployeeDatabase {
 
-    private Map<Integer, Employee> employees;
+    private final Map<Integer, Employee> employees;
     private int nextId;
-    private String dbFile;
+    private final String dbFile;
 
     public EmployeeDatabase() {
-        employees = new HashMap<Integer, Employee>();
+        employees = new HashMap<>();
         nextId = 1;
         dbFile = "employees.db";
     }
@@ -69,15 +67,17 @@ public class EmployeeDatabase {
         }
         employees.remove(id);
         Set<Integer> klice = employees.keySet();
-        Iterator<Integer> it = klice.iterator();
-        while (it.hasNext()) {
-            Integer key = it.next();
+        for (Integer key : klice) {
             employees.get(key).removeCollaborator(id);
         }
         return true;
     }
 
     public void addCollaboration(int empId, int colId, CollabLevel level) {
+        if (empId == colId) {
+            System.out.println("Nelze pridat spolupraci sam se sebou.");
+            return;
+        }
         Employee e = employees.get(empId);
         Employee c = employees.get(colId);
         if (e == null || c == null) {
@@ -85,17 +85,16 @@ public class EmployeeDatabase {
             return;
         }
         e.addCollaboration(colId, level);
+        c.addCollaboration(empId, level);
         System.out.println("Spoluprace pridana.");
     }
 
     public void listByGroup() {
-        List<Employee> analytici = new ArrayList<Employee>();
-        List<Employee> specialiste = new ArrayList<Employee>();
+        List<Employee> analytici = new ArrayList<>();
+        List<Employee> specialiste = new ArrayList<>();
 
         Set<Integer> klice = employees.keySet();
-        Iterator<Integer> it = klice.iterator();
-        while (it.hasNext()) {
-            Integer key = it.next();
+        for (Integer key : klice) {
             Employee e = employees.get(key);
             if (e.getGroupCode() == 'D') {
                 analytici.add(e);
@@ -104,26 +103,24 @@ public class EmployeeDatabase {
             }
         }
 
-        Comparator<Employee> dlePrijmeni = new Comparator<Employee>() {
-            public int compare(Employee a, Employee b) {
-                int c = a.getSurname().compareTo(b.getSurname());
-                if (c == 0) {
-                    return a.getName().compareTo(b.getName());
-                }
-                return c;
+        Comparator<Employee> dlePrijmeni = (a, b) -> {
+            int c = a.getSurname().compareTo(b.getSurname());
+            if (c == 0) {
+                return a.getName().compareTo(b.getName());
             }
+            return c;
         };
 
-        Collections.sort(analytici, dlePrijmeni);
-        Collections.sort(specialiste, dlePrijmeni);
+        analytici.sort(dlePrijmeni);
+        specialiste.sort(dlePrijmeni);
 
         System.out.println("--- Datovi analytici ---");
-        for (int i = 0; i < analytici.size(); i++) {
-            System.out.println(analytici.get(i));
+        for (Employee employee : analytici) {
+            System.out.println(employee);
         }
         System.out.println("--- Bezpecnostni specialiste ---");
-        for (int i = 0; i < specialiste.size(); i++) {
-            System.out.println(specialiste.get(i));
+        for (Employee employee : specialiste) {
+            System.out.println(employee);
         }
     }
 
@@ -132,9 +129,7 @@ public class EmployeeDatabase {
         int specialiste = 0;
 
         Set<Integer> klice = employees.keySet();
-        Iterator<Integer> it = klice.iterator();
-        while (it.hasNext()) {
-            Integer key = it.next();
+        for (Integer key : klice) {
             Employee e = employees.get(key);
             if (e.getGroupCode() == 'D') {
                 analytici++;
@@ -149,7 +144,7 @@ public class EmployeeDatabase {
     }
 
     public void showStatistics() {
-        if (employees.size() == 0) {
+        if (employees.isEmpty()) {
             System.out.println("Databaze je prazdna.");
             return;
         }
@@ -160,20 +155,12 @@ public class EmployeeDatabase {
         Employee mostConnected = null;
         int maxConn = -1;
 
-        Set<Integer> klice = employees.keySet();
-        Iterator<Integer> it = klice.iterator();
-        while (it.hasNext()) {
-            Integer key = it.next();
-            Employee e = employees.get(key);
-
-            Iterator<CollabLevel> it2 = e.getCollaborators().values().iterator();
-            while (it2.hasNext()) {
-                CollabLevel lvl = it2.next();
+        for (Employee e : employees.values()) {
+            for (CollabLevel lvl : e.getCollaborators().values()) {
                 if (lvl == CollabLevel.BAD) bad++;
                 else if (lvl == CollabLevel.AVERAGE) avg++;
                 else good++;
             }
-
             int n = e.getCollaborators().size();
             if (n > maxConn) {
                 maxConn = n;
@@ -181,25 +168,26 @@ public class EmployeeDatabase {
             }
         }
 
+        bad /= 2;
+        avg /= 2;
+        good /= 2;
+
         System.out.println("--- Statistiky ---");
         System.out.println("Spatna spoluprace: " + bad);
         System.out.println("Prumerna spoluprace: " + avg);
         System.out.println("Dobra spoluprace: " + good);
 
-        String dominant = "Spatna";
-        int max = bad;
-        if (avg > max) {
-            max = avg;
-            dominant = "Prumerna";
+        if (bad + avg + good == 0) {
+            System.out.println("Prevazujici kvalita: zadna spoluprace");
+        } else if (good >= bad && good >= avg) {
+            System.out.println("Prevazujici kvalita: Dobra");
+        } else if (avg >= bad) {
+            System.out.println("Prevazujici kvalita: Prumerna");
+        } else {
+            System.out.println("Prevazujici kvalita: Spatna");
         }
-        if (good > max) {
-            dominant = "Dobra";
-        }
-        System.out.println("Prevazujici kvalita: " + dominant);
 
-        if (mostConnected != null) {
-            System.out.println("Zamestnanec s nejvice vazbami: " + mostConnected + " (vazeb: " + maxConn + ")");
-        }
+        System.out.println("Zamestnanec s nejvice vazbami: " + mostConnected + " (vazeb: " + maxConn + ")");
     }
 
     public void saveEmployeeToFile(int id, String filename) {
@@ -223,9 +211,7 @@ public class EmployeeDatabase {
             bw.newLine();
 
             Set<Integer> klice = e.getCollaborators().keySet();
-            Iterator<Integer> it = klice.iterator();
-            while (it.hasNext()) {
-                Integer cid = it.next();
+            for (Integer cid : klice) {
                 CollabLevel lvl = e.getCollaborators().get(cid);
                 bw.write("COLLAB=" + cid + ";" + lvl.getLabel());
                 bw.newLine();
@@ -240,16 +226,15 @@ public class EmployeeDatabase {
 
     public void loadEmployeeFromFile(String filename) {
         try {
-            FileReader fr = new FileReader(filename);
-            BufferedReader br = new BufferedReader(fr);
+            BufferedReader br = new BufferedReader(new FileReader(filename));
 
             char groupCode = ' ';
             int id = -1;
             String name = "";
             String surname = "";
-            int birthYear = 0;
-            List<Integer> rawCollabs = new ArrayList<Integer>();
-            List<String> rawLevels = new ArrayList<String>();
+            int birthYear = -1;
+            List<Integer> rawCollabs = new ArrayList<>();
+            List<CollabLevel> rawLevels = new ArrayList<>();
 
             String line = br.readLine();
             while (line != null) {
@@ -264,32 +249,45 @@ public class EmployeeDatabase {
                 } else if (line.startsWith("BIRTHYEAR=")) {
                     birthYear = Integer.parseInt(line.substring(10));
                 } else if (line.startsWith("COLLAB=")) {
-                    String rest = line.substring(7);
-                    String[] parts = rest.split(";");
+                    String[] parts = line.substring(7).split(";");
                     rawCollabs.add(Integer.parseInt(parts[0]));
-                    rawLevels.add(parts[1]);
+                    rawLevels.add(CollabLevel.fromLabel(parts[1]));
                 }
                 line = br.readLine();
             }
             br.close();
-            fr.close();
 
-            Employee e;
-            if (groupCode == 'D') {
-                e = new DataAnalyst(id, name, surname, birthYear);
-            } else {
-                e = new SecuritySpecialist(id, name, surname, birthYear);
+            if ((groupCode != 'D' && groupCode != 'S') || !isYearValid(birthYear)
+                    || name.isEmpty() || surname.isEmpty() || id < 1) {
+                System.out.println("Soubor obsahuje neplatna data.");
+                return;
             }
 
+            Employee e = (groupCode == 'D')
+                    ? new DataAnalyst(id, name, surname, birthYear)
+                    : new SecuritySpecialist(id, name, surname, birthYear);
+
             for (int i = 0; i < rawCollabs.size(); i++) {
-                e.addCollaboration(rawCollabs.get(i), CollabLevel.fromLabel(rawLevels.get(i)));
+                int cid = rawCollabs.get(i);
+                CollabLevel lvl = rawLevels.get(i);
+                if (cid == id || lvl == null) continue;
+                e.addCollaboration(cid, lvl);
+                Employee colleague = employees.get(cid);
+                if (colleague != null) {
+                    colleague.addCollaboration(id, lvl);
+                }
             }
 
             addEmployee(e);
             System.out.println("Zamestnanec nacten: " + e);
-        } catch (IOException ex) {
-            System.out.println("Chyba pri nacitani: " + ex.getMessage());
+        } catch (IOException | NumberFormatException | IndexOutOfBoundsException ex) {
+            System.out.println("Chyba pri nacitani souboru: " + ex.getMessage());
         }
+    }
+
+    public static boolean isYearValid(int year) {
+        int current = java.time.Year.now().getValue();
+        return year >= 1900 && year <= current;
     }
 
     public void saveToSQLite() {
@@ -308,9 +306,7 @@ public class EmployeeDatabase {
             PreparedStatement psCol = conn.prepareStatement(sqlCol);
 
             Set<Integer> klice = employees.keySet();
-            Iterator<Integer> it = klice.iterator();
-            while (it.hasNext()) {
-                Integer key = it.next();
+            for (Integer key : klice) {
                 Employee e = employees.get(key);
                 psEmp.setInt(1, e.getId());
                 psEmp.setString(2, e.getName());
@@ -320,9 +316,7 @@ public class EmployeeDatabase {
                 psEmp.executeUpdate();
 
                 Set<Integer> colKeys = e.getCollaborators().keySet();
-                Iterator<Integer> it2 = colKeys.iterator();
-                while (it2.hasNext()) {
-                    Integer cid = it2.next();
+                for (Integer cid : colKeys) {
                     psCol.setInt(1, e.getId());
                     psCol.setInt(2, cid);
                     psCol.setInt(3, e.getCollaborators().get(cid).getValue());

@@ -7,18 +7,18 @@ import java.util.Iterator;
 
 public abstract class Employee {
 
-    private int id;
-    private String name;
-    private String surname;
-    private int birthYear;
-    private Map<Integer, CollabLevel> collaborators;
+    private final int id;
+    private final String name;
+    private final String surname;
+    private final int birthYear;
+    private final Map<Integer, CollabLevel> collaborators;
 
     public Employee(int id, String name, String surname, int birthYear) {
         this.id = id;
         this.name = name;
         this.surname = surname;
         this.birthYear = birthYear;
-        this.collaborators = new HashMap<Integer, CollabLevel>();
+        this.collaborators = new HashMap<>();
     }
 
     public int getId() {
@@ -61,15 +61,13 @@ public abstract class Employee {
         System.out.println("Skupina: " + getGroupName());
         System.out.println("Pocet spolupraci: " + collaborators.size());
 
-        if (collaborators.size() > 0) {
+        if (!collaborators.isEmpty()) {
             System.out.println("Spolupracovnici:");
             int bad = 0;
             int avg = 0;
             int good = 0;
             Set<Integer> klice = collaborators.keySet();
-            Iterator<Integer> it = klice.iterator();
-            while (it.hasNext()) {
-                Integer cid = it.next();
+            for (Integer cid : klice) {
                 CollabLevel lvl = collaborators.get(cid);
                 Employee col = all.get(cid);
                 String fullName = "(neznamy)";
