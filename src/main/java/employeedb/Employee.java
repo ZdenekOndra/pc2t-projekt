@@ -41,6 +41,11 @@ public abstract class Employee {
     }
 
     public void addCollaboration(int colId, CollabLevel level) {
+        if (level == null) {
+        System.out.println("Neplatna uroven spoluprace.");
+        return;
+        }
+        
         if (colId == id) {
             System.out.println("Nelze pridat sebe sama.");
             return;
