@@ -100,7 +100,7 @@ public class Main {
         System.out.println("Skupina: D = datovy analytik, S = bezpecnostni specialista");
         System.out.println("Kod skupiny:");
         String input = sc.nextLine().trim().toUpperCase();
-        if (input.isEmpty() || (input.charAt(0) != 'D' && input.charAt(0) != 'S')) {
+       if (!input.equals("D") && !input.equals("S")) {
             System.out.println("Neznamy kod skupiny (povoleno D nebo S).");
             return;
         }
@@ -113,6 +113,11 @@ public class Main {
         if (name.isEmpty() || surname.isEmpty()) {
             System.out.println("Jmeno a prijmeni nesmi byt prazdne.");
             return;
+        }
+
+        if (!name.matches("[A-Za-zÁ-Žá-ž]+") || !surname.matches("[A-Za-zÁ-Žá-ž]+")) {
+            System.out.println("Jmeno a prijmeni musi obsahovat pouze pismena.");
+             return;
         }
 
         System.out.println("Rok narozeni:");
