@@ -30,4 +30,23 @@ public class SecuritySpecialist extends Employee {
         System.out.println("Prumerna kvalita spoluprace: " + avgQuality);
         System.out.println("Rizikove skore: " + score);
 
+        String level;
+        if (score < 5) {
+            level = "NIZKE";
+        } else if (score < 15) {
+            level = "STREDNI";
+        } else {
+            level = "VYSOKE";
+        }
+        System.out.println("Uroven rizika: " + level);
+    }
+
+    public String getGroupName() {
+        return "Bezpecnostni specialista";
+    }
+
+    public char getGroupCode() {
+        return 'S';
+    }
+}
       
