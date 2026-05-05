@@ -14,7 +14,7 @@ public class DataAnalyst extends Employee {
         System.out.println("Dovednost: spolupracovnik s nejvice spolecnymi vazbami");
 
         Map<Integer, CollabLevel> myCol = getCollaborators();
-        if (myCol.size() == 0) {
+        if (myCol.isEmpty()) {
             System.out.println("Tento zamestnanec nema zadne spolupracovniky.");
             return;
         }
@@ -23,17 +23,13 @@ public class DataAnalyst extends Employee {
         int bestCount = -1;
 
         Set<Integer> myKeys = myCol.keySet();
-        Iterator<Integer> it = myKeys.iterator();
-        while (it.hasNext()) {
-            Integer cid = it.next();
+        for (Integer cid : myKeys) {
             Employee col = all.get(cid);
             if (col == null) continue;
 
             int common = 0;
             Set<Integer> colKeys = col.getCollaborators().keySet();
-            Iterator<Integer> it2 = colKeys.iterator();
-            while (it2.hasNext()) {
-                Integer otherId = it2.next();
+            for (Integer otherId : colKeys) {
                 if (otherId != getId() && myCol.containsKey(otherId)) {
                     common++;
                 }
