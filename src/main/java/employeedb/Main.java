@@ -197,8 +197,8 @@ public class Main {
         String filename = sc.nextLine().trim();
 
         if (filename.isEmpty()) {
-        System.out.println("Nazev souboru nesmi byt prazdny.");
-        return;
+            System.out.println("Nazev souboru nesmi byt prazdny.");
+            return;
         }
         
         db.loadEmployeeFromFile(filename);
